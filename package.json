@@ -4,7 +4,7 @@
   "description": "Use browserify to make multiple async loadable bundles",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node_modules/.bin/jasmine-node spec"
   },
   "repository": "",
   "keywords": [
@@ -16,5 +16,8 @@
     "browserify": "*",
     "concat-stream": "*",
     "module-deps": "*"
+  },
+  "devDependencies": {
+    "jasmine-node": "*"
   }
 }

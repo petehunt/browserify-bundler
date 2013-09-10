@@ -21,6 +21,7 @@ function bundle(bundleSpec, cb) {
 
   function iter() {
     i++;
+
     if (i === bundleNames.length) {
       cb(browserifiedBundles, bundleMap);
       return;
@@ -29,8 +30,14 @@ function bundle(bundleSpec, cb) {
     var bundleName = bundleNames[i];
 
     var b = browserify();
-    bundleSpec[bundleName].forEach(b.require.bind(b));
-    filesToExclude.forEach(b.ignore.bind(b));
+
+    filesToExclude.forEach(function(moduleToExclude) {
+      b.external(moduleToExclude);
+    });
+    bundleSpec[bundleName].forEach(function(moduleToBundle) {
+      b.require(moduleToBundle, {expose: moduleToBundle});
+    });
+
     b.bundle().pipe(concatStream(function(src) {
       browserifiedBundles[bundleName] = src;
       mdeps(b.files, {}).pipe(concatStream(function(modules) {
@@ -51,10 +58,4 @@ function bundle(bundleSpec, cb) {
   iter();
 }
 
-bundle({
-  'core': ['./test/copyProperties'],
-  'react': ['./test/react'],
-  'app': ['./test/app']
-}, function(bundles, bundleMap) {
-  console.log(bundleMap);
-});
+module.exports = bundle;

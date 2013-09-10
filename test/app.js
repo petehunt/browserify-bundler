@@ -1,3 +1,3 @@
-require('./react');
+var r = require('./react');
 
-module.exports = 'app';
+module.exports = 'app' + ' ' + r;
