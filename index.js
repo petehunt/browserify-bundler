@@ -11,7 +11,7 @@ function getObjectValues(obj) {
 }
 
 // bundlespec -> (bundles, bundlemap)
-function bundle(bundleSpec, cb) {
+function bundle(bundleSpec, cb, opts) {
   // parents are common code, externals are apps
   var browserifiedBundles = {};
   var bundleMap = {}; // map abs module ID to bundle it lives in
@@ -29,7 +29,7 @@ function bundle(bundleSpec, cb) {
 
     var bundleName = bundleNames[i];
 
-    var b = browserify();
+    var b = browserify(opts);
 
     filesToExclude.forEach(function(moduleToExclude) {
       b.external(moduleToExclude);
