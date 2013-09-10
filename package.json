@@ -1,0 +1,20 @@
+{
+  "name": "browserify-bundler",
+  "version": "0.0.0",
+  "description": "Use browserify to make multiple async loadable bundles",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "",
+  "keywords": [
+    "browserify"
+  ],
+  "author": "Pete Hunt",
+  "license": "Apache 2",
+  "dependencies": {
+    "browserify": "*",
+    "externalize": "*",
+    "through": "*"
+  }
+}
