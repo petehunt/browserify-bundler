@@ -1,9 +1,11 @@
 var bundle = require('../index');
+var Runtime = require('../lib/Runtime'); // browser runtime
 
 describe('bundle', function() {
   it('should work', function() {
     var bundles = null;
     var bundleMap = null;
+    var done = false;
 
     runs(function() {
       bundle({
@@ -37,14 +39,28 @@ describe('bundle', function() {
       expectBundle(bundles.app, ['app']);
 
       // next ensure that they actually work.
+
+      var bundlesFetched = [];
+      var runtime = new Runtime(bundleMap, function(bundlesToFetch, cb) {
+        bundlesFetched = bundlesFetched.concat(Object.keys(bundlesToFetch));
+        cb();
+      });
+
       function guard() {
         // TODO: if you don't load these in the right order they fail. what a great library.
-        var require = eval(bundles.core);
-        require = eval(bundles.react);
-        require = eval(bundles.app);
-        expect(require('./test/app')).toBe('app react');
+        runtime.asyncRequire('/Users/phunt/Projects/browserify-bundler/test/app.js', function(module) {
+          expect(module).toBe('app react');
+          expect(bundlesFetched).toEqual([
+            'app', 'react', 'core'
+          ]);
+          done = true;
+        });
       }
       guard();
+    });
+
+    waitsFor(function() {
+      return done;
     });
   });
 });
