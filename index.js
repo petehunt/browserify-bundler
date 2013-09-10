@@ -6,6 +6,7 @@ var mdeps = require('module-deps');
 function bundle(bundleSpec, cb) {
   // parents are common code, externals are apps
   var browserifiedBundles = {};
+  var bundleMap = {}; // map abs module ID to bundle it lives in
   var bundleNames = Object.keys(bundleSpec);
   var filesToExclude = [];
   var i = -1;
@@ -13,7 +14,7 @@ function bundle(bundleSpec, cb) {
   function iter() {
     i++;
     if (i === bundleNames.length) {
-      cb(browserifiedBundles);
+      cb(browserifiedBundles, bundleMap);
       return;
     }
 
@@ -25,8 +26,10 @@ function bundle(bundleSpec, cb) {
     b.bundle().pipe(concatStream(function(src) {
       browserifiedBundles[bundleName] = src;
       mdeps(b.files, {}).pipe(concatStream(function(modules) {
-        console.log('deps of', b.files, modules);
         modules.forEach(function(module) {
+          if (!bundleMap[module.id]) {
+            bundleMap[module.id] = bundleName;
+          }
           filesToExclude.push(module.id);
         });
         iter();
@@ -40,10 +43,6 @@ bundle({
   'core': ['./test/copyProperties'],
   'react': ['./test/react'],
   'app': ['./test/app']
-}, function(bundles) {
-  console.log(bundles);
-  return;
-  bundleManyToSources(bundles, function(srcs) {
-    console.log(srcs);
-  });
+}, function(bundles, bundleMap) {
+  console.log(bundleMap);
 });
