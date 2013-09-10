@@ -1,22 +1,15 @@
 var browserify = require('browserify');
-var externalize = require('externalize');
-var through = require('through');
-
-function bundleToSource(b, cb) {
-  var buf = '';
-  b.bundle().pipe(through(function write(data) {
-    buf += data;
-  }, function end() {
-    cb(buf);
-  }));
-}
+var concatStream = require('concat-stream');
+var mdeps = require('module-deps');
 
 // bundlespec -> (bundles, bundlemap)
 function bundle(bundleSpec, cb) {
   // parents are common code, externals are apps
   var browserifiedBundles = {};
   var bundleNames = Object.keys(bundleSpec);
+  var filesToExclude = [];
   var i = -1;
+
   function iter() {
     i++;
     if (i === bundleNames.length) {
@@ -28,40 +21,19 @@ function bundle(bundleSpec, cb) {
 
     var b = browserify();
     bundleSpec[bundleName].forEach(b.require.bind(b));
-    if (i === 0) {
-      browserifiedBundles[bundleName] = b;
-      iter();
-    } else {
-      var parents = Object.keys(browserifiedBundles).map(function(k) {
-        return browserifiedBundles[k];
-      });
-      externalize(b, parents, function(err) {
-        if (err) {
-          console.error(err);
-          return;
-        }
-        browserifiedBundles[bundleName] = b;
+    console.log('bundling', bundleName, filesToExclude);
+    filesToExclude.forEach(b.ignore.bind(b));
+    b.bundle().pipe(concatStream(function(src) {
+      browserifiedBundles[bundleName] = src;
+      mdeps(b.files, {}).pipe(concatStream(function(modules) {
+        modules.forEach(function(module) {
+          filesToExclude.push(module.id);
+        });
         iter();
-      });
-    }
+      }));
+    }));
   }
   iter();
-}
-
-function bundleManyToSources(browserifiedBundles, cb) {
-  var srcs = {};
-  var i = 0;
-  var browserifiedBundleNames = Object.keys(browserifiedBundles);
-  browserifiedBundleNames.forEach(function(name) {
-    var browserifiedBundle = browserifiedBundles[name];
-    bundleToSource(browserifiedBundle, function(src) {
-      srcs[name] = src;
-      i++;
-      if (i === browserifiedBundleNames.length) {
-        cb(srcs);
-      }
-    });
-  });
 }
 
 bundle({
@@ -69,6 +41,8 @@ bundle({
   'react': ['./test/react'],
   'app': ['./test/app']
 }, function(bundles) {
+  console.log(bundles);
+  return;
   bundleManyToSources(bundles, function(srcs) {
     console.log(srcs);
   });

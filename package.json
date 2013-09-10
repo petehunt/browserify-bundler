@@ -14,7 +14,7 @@
   "license": "Apache 2",
   "dependencies": {
     "browserify": "*",
-    "externalize": "*",
-    "through": "*"
+    "concat-stream": "*",
+    "module-deps": "*"
   }
 }
