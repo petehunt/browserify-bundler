@@ -21,11 +21,11 @@ function bundle(bundleSpec, cb) {
 
     var b = browserify();
     bundleSpec[bundleName].forEach(b.require.bind(b));
-    console.log('bundling', bundleName, filesToExclude);
     filesToExclude.forEach(b.ignore.bind(b));
     b.bundle().pipe(concatStream(function(src) {
       browserifiedBundles[bundleName] = src;
       mdeps(b.files, {}).pipe(concatStream(function(modules) {
+        console.log('deps of', b.files, modules);
         modules.forEach(function(module) {
           filesToExclude.push(module.id);
         });
