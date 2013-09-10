@@ -2,6 +2,14 @@ var browserify = require('browserify');
 var concatStream = require('concat-stream');
 var mdeps = require('module-deps');
 
+function getObjectValues(obj) {
+  var rv = [];
+  for (var k in obj) {
+    rv.push(obj[k]);
+  }
+  return rv;
+}
+
 // bundlespec -> (bundles, bundlemap)
 function bundle(bundleSpec, cb) {
   // parents are common code, externals are apps
@@ -28,9 +36,10 @@ function bundle(bundleSpec, cb) {
       mdeps(b.files, {}).pipe(concatStream(function(modules) {
         modules.forEach(function(module) {
           if (!bundleMap[module.id]) {
+            // TODO: could compress this to just an array of bundles you need, but w/e
             bundleMap[module.id] = {
               'bundle': bundleName,
-              'dependencies': module.deps
+              'dependencies': getObjectValues(module.deps)
             };
           }
           filesToExclude.push(module.id);
