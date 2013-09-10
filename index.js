@@ -28,7 +28,10 @@ function bundle(bundleSpec, cb) {
       mdeps(b.files, {}).pipe(concatStream(function(modules) {
         modules.forEach(function(module) {
           if (!bundleMap[module.id]) {
-            bundleMap[module.id] = bundleName;
+            bundleMap[module.id] = {
+              'bundle': bundleName,
+              'dependencies': module.deps
+            };
           }
           filesToExclude.push(module.id);
         });
